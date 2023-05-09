@@ -37,6 +37,7 @@ MOUNTS["${ROOT}/models/midas"]="/data/MiDaS"
 MOUNTS["${ROOT}/models/Lora"]="/data/Lora"
 MOUNTS["${ROOT}/models/ControlNet"]="/data/ControlNet"
 MOUNTS["${ROOT}/models/openpose"]="/data/openpose"
+MOUNTS["${ROOT}/models/sam"]="/data/sam"
 
 MOUNTS["${ROOT}/embeddings"]="/data/embeddings"
 MOUNTS["${ROOT}/config.json"]="/data/config/auto/config.json"
