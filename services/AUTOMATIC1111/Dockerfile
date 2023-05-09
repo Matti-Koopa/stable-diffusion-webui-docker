@@ -18,12 +18,9 @@ RUN . /clone.sh clip-interrogator https://github.com/pharmapsychotic/clip-interr
 
 FROM alpine:3.17 as xformers
 RUN apk add --no-cache aria2
-RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/5.0.0/xformers-0.0.17.dev449-cp310-cp310-manylinux2014_x86_64.whl'
+RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/5.0.3/xformers-0.0.20.dev528-cp310-cp310-manylinux2014_x86_64-pytorch2.whl'
 
-#FROM python:3.10.9-slim
-#FROM nvidia/cuda:12.1.0-devel-ubuntu18.04
 FROM nvidia/cuda:11.7.0-devel-ubuntu18.04
-#FROM qts8n/cuda-python:runtime
 
 ENV DEBIAN_FRONTEND=noninteractive PIP_PREFER_BINARY=1
 
@@ -44,7 +41,7 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
 ENV LANG en_US.utf8
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-  pip install torch==1.13.1+cu117 torchvision --extra-index-url https://download.pytorch.org/whl/cu117
+  pip install torch==2.0.0+cu117 torchvision --extra-index-url https://download.pytorch.org/whl/cu117
 
 RUN apt-get update && apt install fonts-dejavu-core rsync git jq moreutils libgl1 libglib2.0-0 build-essential cargo rustc -y && apt-get clean
 
@@ -53,19 +50,20 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   cd stable-diffusion-webui && \
   git reset --hard d7aec59c4eb02f723b3d55c6f927a42e97acd679 && \
   pip install -r requirements_versions.txt
-
-RUN --mount=type=cache,target=/root/.cache/pip  \
-  --mount=type=bind,from=xformers,source=/wheel.whl,target=/xformers-0.0.15-cp310-cp310-linux_x86_64.whl \
-  pip install triton /xformers-0.0.15-cp310-cp310-linux_x86_64.whl
-
 ENV ROOT=/stable-diffusion-webui
 
+# Xformers
+RUN --mount=type=cache,target=/root/.cache/pip  \
+  --mount=type=bind,from=xformers,source=/wheel.whl,target=/xformers-0.0.20.dev528-cp310-cp310-manylinux2014_x86_64.whl \
+  pip install /xformers-0.0.20.dev528-cp310-cp310-manylinux2014_x86_64.whl
 
+# CodeFormer
 COPY --from=download /repositories/ ${ROOT}/repositories/
 RUN mkdir ${ROOT}/interrogate && cp ${ROOT}/repositories/clip-interrogator/data/* ${ROOT}/interrogate
 RUN --mount=type=cache,target=/root/.cache/pip \
   pip install -r ${ROOT}/repositories/CodeFormer/requirements.txt
 
+# Other pip packages
 RUN --mount=type=cache,target=/root/.cache/pip \
   pip install pyngrok \
   git+https://github.com/TencentARC/GFPGAN.git@8d2447a2d918f8eba5a4a01463fd48e45126a379 \
@@ -88,14 +86,12 @@ ENV LD_PRELOAD=libtcmalloc.so
 
 # Note: don't update the sha of previous versions because the install will take forever
 # instead, update the repo state in a later step
-
-ARG SHA=a9fed7c364061ae6efb37f797b6b522cb3cf7aa2
 RUN --mount=type=cache,target=/root/.cache/pip \
   cd stable-diffusion-webui && \
   git fetch && \
   git pull && \
   pip install -r requirements_versions.txt
-# war statt vorletze  git reset --hard ${SHA} && \
+# original: git reset --hard a9fed7c364061ae6efb37f797b6b522cb3cf7aa2 && \
 
 RUN --mount=type=cache,target=/root/.cache/pip  pip install -U opencv-python-headless
 
