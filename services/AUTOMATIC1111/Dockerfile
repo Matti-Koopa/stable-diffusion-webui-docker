@@ -14,13 +14,14 @@ RUN . /clone.sh CodeFormer https://github.com/sczhou/CodeFormer.git c5b4593074ba
 RUN . /clone.sh BLIP https://github.com/salesforce/BLIP.git 48211a1594f1321b00f14c9f7a5b4813144b2fb9
 RUN . /clone.sh k-diffusion https://github.com/crowsonkb/k-diffusion.git 5b3af030dd83e0297272d861c19477735d0317ec
 RUN . /clone.sh clip-interrogator https://github.com/pharmapsychotic/clip-interrogator 2486589f24165c8e3b303f84e9dbbea318df83e8
+RUN . /clone.sh generative-models https://github.com/Stability-AI/generative-models.git 6ecd0a900a7da4604da64bec610080a89ae710ab
 
 
 FROM alpine:3.17 as xformers
 RUN apk add --no-cache aria2
 RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/5.0.3/xformers-0.0.20.dev528-cp310-cp310-manylinux2014_x86_64-pytorch2.whl'
 
-FROM nvidia/cuda:11.7.0-devel-ubuntu18.04
+FROM nvidia/cuda:11.7.1-devel-ubuntu20.04
 
 ENV DEBIAN_FRONTEND=noninteractive PIP_PREFER_BINARY=1
 
@@ -48,9 +49,10 @@ RUN apt-get update && apt install fonts-dejavu-core rsync git jq moreutils libgl
 RUN --mount=type=cache,target=/root/.cache/pip \
   git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git && \
   cd stable-diffusion-webui && \
-  git reset --hard d7aec59c4eb02f723b3d55c6f927a42e97acd679 && \
+  git reset --hard a3ddf464a2ed24c999f67ddfef7969f8291567be && \
   pip install -r requirements_versions.txt
 ENV ROOT=/stable-diffusion-webui
+#  git reset --hard 20ae71faa8ef035c31aa3a410b707d792c8203a3 && \
 
 # Xformers
 RUN --mount=type=cache,target=/root/.cache/pip  \
@@ -86,7 +88,7 @@ ENV LD_PRELOAD=libtcmalloc.so
 
 # Note: don't update the sha of previous versions because the install will take forever
 # instead, update the repo state in a later step
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/root/.cache/a \
   cd stable-diffusion-webui && \
   git fetch && \
   git pull && \
